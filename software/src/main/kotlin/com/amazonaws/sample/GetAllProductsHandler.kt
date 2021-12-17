@@ -29,12 +29,14 @@ class GetAllProductsHandler : RequestHandler<APIGatewayV2HTTPEvent, APIGatewayV2
 
         val scanResponse = try {
             runBlocking {
-                dynamoDbClient.scan(ScanRequest {
-                    tableName = productTable
-                    limit = 20
-                })
+                dynamoDbClient.scan(
+                    ScanRequest {
+                        tableName = productTable
+                        limit = 20
+                    }
+                )
             }
-        } catch (e : Exception) {
+        } catch (e: Exception) {
             logger.log("ERROR: ${e.message}")
             return APIGatewayV2HTTPResponse().apply {
                 statusCode = 500
@@ -45,7 +47,7 @@ class GetAllProductsHandler : RequestHandler<APIGatewayV2HTTPEvent, APIGatewayV2
 
         val products = ArrayList<Product>()
 
-        scanResponse.items?.map { it
+        scanResponse.items?.map {
             val id = it.getValue("PK").asString
             val name = it.getValue("name").asString
             val price = it.getValue("price").asFloat

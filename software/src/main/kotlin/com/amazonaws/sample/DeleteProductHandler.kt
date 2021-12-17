@@ -24,20 +24,18 @@ class DeleteProductHandler : RequestHandler<APIGatewayV2HTTPEvent, APIGatewayV2H
     override fun handleRequest(event: APIGatewayV2HTTPEvent, context: Context): APIGatewayV2HTTPResponse {
         val logger = context.logger
 
-        val id = event.pathParameters?.get("id") ?: return APIGatewayV2HTTPResponse().apply {
-            statusCode = 500
-            headers = mapOf("Content-Type" to "application/json")
-            body = """{ "message": "Missing 'id' parameter in path" }"""
-        }
+        val id = event.pathParameters?.get("id") ?: return missingId()
 
         try {
             runBlocking {
-                dynamoDbClient.deleteItem(DeleteItemRequest {
-                    tableName = productTable
-                    key = mapOf("PK" to AttributeValue.S(id))
-                })
+                dynamoDbClient.deleteItem(
+                    DeleteItemRequest {
+                        tableName = productTable
+                        key = mapOf("PK" to AttributeValue.S(id))
+                    }
+                )
             }
-        } catch (e : Exception) {
+        } catch (e: Exception) {
             logger.log("ERROR ${e.message}")
             return APIGatewayV2HTTPResponse().apply {
                 statusCode = 500

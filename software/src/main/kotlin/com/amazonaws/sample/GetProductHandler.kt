@@ -27,23 +27,17 @@ class GetProductHandler : RequestHandler<APIGatewayV2HTTPEvent, APIGatewayV2HTTP
     override fun handleRequest(event: APIGatewayV2HTTPEvent, context: Context): APIGatewayV2HTTPResponse {
         val logger = context.logger
 
-        val requestId = event.pathParameters["id"]
-        requestId ?: run {
-            logger.log("WARN: Missing 'id' parameter in path")
-            return APIGatewayV2HTTPResponse().apply {
-                statusCode = 400
-                headers = mapOf("Content-Type" to "application/json")
-                body = """{ "message": "Missing 'id' parameter in path" }"""
-            }
-        }
+        val requestId = event.pathParameters?.get("id") ?: return missingId()
 
-        logger.log("INFO: Fetching product [$requestId]");
+        logger.log("INFO: Fetching product [$requestId]")
 
         val response = runBlocking {
-            dynamoDbClient.getItem(GetItemRequest {
-                tableName = productTable
-                key = mapOf("PK" to AttributeValue.S(requestId))
-            })
+            dynamoDbClient.getItem(
+                GetItemRequest {
+                    tableName = productTable
+                    key = mapOf("PK" to AttributeValue.S(requestId))
+                }
+            )
         }
 
         val id = response.item?.getValue("PK")?.asString

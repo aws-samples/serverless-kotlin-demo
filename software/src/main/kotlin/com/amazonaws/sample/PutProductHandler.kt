@@ -28,14 +28,7 @@ class PutProductHandler : RequestHandler<APIGatewayV2HTTPEvent, APIGatewayV2HTTP
         val logger = context.logger
         logger.log(event.toString())
 
-        val id = event.pathParameters["id"] ?: let {
-            logger.log("WARN: Missing 'id' parameter in path")
-            return APIGatewayV2HTTPResponse().apply {
-                statusCode = 400
-                headers = mapOf("Content-Type" to "application/json")
-                body = """{ "message": "Missing 'id' parameter in path" }"""
-            }
-        }
+        val id = event.pathParameters?.get("id") ?: return missingId()
 
         if (event.body == null || event.body.isEmpty()) {
             return APIGatewayV2HTTPResponse().apply {
@@ -46,7 +39,7 @@ class PutProductHandler : RequestHandler<APIGatewayV2HTTPEvent, APIGatewayV2HTTP
         }
 
         val product = try {
-             Json.decodeFromString<Product>(event.body)
+            Json.decodeFromString<Product>(event.body)
         } catch (e: Exception) {
             logger.log(e.message)
             return APIGatewayV2HTTPResponse().apply {
@@ -58,7 +51,7 @@ class PutProductHandler : RequestHandler<APIGatewayV2HTTPEvent, APIGatewayV2HTTP
 
         logger.log("Product: $product")
 
-        if(id != product.id) {
+        if (id != product.id) {
             logger.log("ERROR: Product ID in path ($id) does not match product ID in body (${product.id})")
             return APIGatewayV2HTTPResponse().apply {
                 statusCode = 400
@@ -74,10 +67,12 @@ class PutProductHandler : RequestHandler<APIGatewayV2HTTPEvent, APIGatewayV2HTTP
         )
 
         runBlocking {
-            dynamoDbClient.putItem(PutItemRequest {
-                tableName = productTable
-                item = itemValues
-            })
+            dynamoDbClient.putItem(
+                PutItemRequest {
+                    tableName = productTable
+                    item = itemValues
+                }
+            )
         }
 
         return APIGatewayV2HTTPResponse().apply {
