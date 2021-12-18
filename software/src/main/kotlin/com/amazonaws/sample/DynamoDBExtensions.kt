@@ -5,5 +5,5 @@ package com.amazonaws.sample
 
 import aws.sdk.kotlin.services.dynamodb.model.AttributeValue
 
-val AttributeValue.asString : String get() = (this as AttributeValue.S).value
-val AttributeValue.asFloat : Float get() = (this as AttributeValue.N).value.toFloat()
+val AttributeValue.asString get() = (this as AttributeValue.S).value
+val AttributeValue.asFloat get() = (this as AttributeValue.N).value.toFloat()

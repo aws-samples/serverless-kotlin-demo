@@ -1,18 +1,18 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import com.github.jk1.license.render.ReportRenderer
-import com.github.jk1.license.render.InventoryHtmlReportRenderer
 import com.github.jk1.license.filter.DependencyFilter
 import com.github.jk1.license.filter.LicenseBundleNormalizer
+import com.github.jk1.license.render.InventoryHtmlReportRenderer
+import com.github.jk1.license.render.ReportRenderer
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.6.0"
-    kotlin("plugin.serialization") version "1.5.31"
-    id("com.github.johnrengelman.shadow") version "5.1.0"
+    kotlin("jvm") version "1.6.10"
+    kotlin("plugin.serialization") version "1.5.32"
+    id("com.github.johnrengelman.shadow") version "7.1.0"
     id("com.github.jk1.dependency-license-report") version "2.0"
 }
 
 licenseReport {
-    renderers = arrayOf<ReportRenderer>(InventoryHtmlReportRenderer("report.html","Backend"))
+    renderers = arrayOf<ReportRenderer>(InventoryHtmlReportRenderer("report.html", "Backend"))
     filters = arrayOf<DependencyFilter>(LicenseBundleNormalizer())
 }
 
@@ -35,6 +35,7 @@ tasks.test {
     useJUnitPlatform()
 }
 
-tasks.withType<KotlinCompile>() {
+tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "11"
+    kotlinOptions.freeCompilerArgs = listOf("-Xjsr305=strict -Xstring-concat=indy-with-constants")
 }
