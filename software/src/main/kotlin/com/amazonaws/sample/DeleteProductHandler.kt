@@ -17,7 +17,7 @@ class DeleteProductHandler : RequestHandler<APIGatewayV2HTTPEvent, APIGatewayV2H
 
     private val productTable = System.getenv("PRODUCT_TABLE")
     private val dynamoDbClient = DynamoDbClient {
-        region = "eu-west-1"
+        region = System.getenv("AWS_REGION")
         credentialsProvider = EnvironmentCredentialsProvider()
     }
 
