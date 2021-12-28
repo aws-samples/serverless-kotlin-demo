@@ -1,5 +1,5 @@
 {
-  "app": "mvn -e -q compile exec:java",
+  "app": "cd ../; ./gradlew -q --console=plain infrastructure:run",
   "watch": {
     "include": [
       "**"
@@ -7,8 +7,8 @@
     "exclude": [
       "README.md",
       "cdk*.json",
-      "target",
-      "pom.xml",
+      "build",
+      "build.gradle.kts",
       "src/test"
     ]
   },
