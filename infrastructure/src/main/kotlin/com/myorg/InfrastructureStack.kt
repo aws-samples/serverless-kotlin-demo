@@ -24,12 +24,18 @@ import software.amazon.awscdk.services.lambda.Code
 import software.amazon.awscdk.services.lambda.Function
 import software.amazon.awscdk.services.lambda.Runtime
 
-class InfrastructureStack constructor(scope: Construct?, id: String?, props: StackProps? = null) : Stack(scope, id, props) {
+class InfrastructureStack constructor(scope: Construct, id: String, props: StackProps) : Stack(scope, id, props) {
     companion object {
         private const val MEMORY_SIZE = 2048
     }
-
     val functions = mutableListOf<Function>()
+    private val codePath = "../software/build/libs/software-1.0-SNAPSHOT-all.jar"
+    private val optimizationLayer: LayerVersion = LayerVersion.Builder.create(this, "OptimizationLayer")
+        .layerVersionName("OptimizationLayer")
+        .description("Enable tiered compilation")
+        .compatibleRuntimes(listOf(Runtime.JAVA_11, Runtime.JAVA_8_CORRETTO))
+        .code(Code.fromAsset("../software/OptimizationLayer/layer.zip"))
+        .build()
 
     init {
         val productsTable = Table.Builder.create(this, "Products-Kotlin")
@@ -42,71 +48,24 @@ class InfrastructureStack constructor(scope: Construct?, id: String?, props: Sta
             )
             .billingMode(BillingMode.PAY_PER_REQUEST)
             .build()
-
-        val optimizationLayer = LayerVersion.Builder.create(this, "OptimizationLayer")
-            .layerVersionName("OptimizationLayer")
-            .description("Enable tiered compilation")
-            .compatibleRuntimes(listOf(Runtime.JAVA_11, Runtime.JAVA_8_CORRETTO))
-            .code(Code.fromAsset("../software/OptimizationLayer/layer.zip"))
-            .build()
-        val codePath = "../software/build/libs/software-1.0-SNAPSHOT-all.jar"
         val environmentVariables = mapOf(
             "PRODUCT_TABLE" to productsTable.tableName,
-            "AWS_LAMBDA_EXEC_WRAPPER" to "/opt/java-exec-wrapper"
+            "AWS_LAMBDA_EXEC_WRAPPER" to "/opt/java-exec-wrapper",
         )
 
-        val putProductFunction = Function.Builder.create(this, "PutProduct")
-            .functionName("PutProduct")
-            .runtime(Runtime.JAVA_11)
-            .code(Code.fromAsset(codePath))
-            .handler("com.amazonaws.sample.PutProductHandler")
-            .architecture(Architecture.ARM_64)
-            .logRetention(RetentionDays.ONE_WEEK)
-            .memorySize(MEMORY_SIZE)
-            .timeout(Duration.seconds(20))
-            .environment(environmentVariables)
-            .layers(listOf(optimizationLayer))
-            .build()
-        val getProductFunction = Function.Builder.create(this, "GetProduct")
-            .functionName("GetProduct")
-            .runtime(Runtime.JAVA_11)
-            .code(Code.fromAsset(codePath))
-            .handler("com.amazonaws.sample.GetProductHandler")
-            .architecture(Architecture.ARM_64)
-            .logRetention(RetentionDays.ONE_WEEK)
-            .memorySize(MEMORY_SIZE)
-            .timeout(Duration.seconds(20))
-            .environment(environmentVariables)
-            .layers(listOf(optimizationLayer))
-            .build()
-        val getAllProductsFunction = Function.Builder.create(this, "GetAllProducts")
-            .functionName("GetAllProducts")
-            .runtime(Runtime.JAVA_11)
-            .code(Code.fromAsset(codePath))
-            .handler("com.amazonaws.sample.GetAllProductsHandler")
-            .architecture(Architecture.ARM_64)
-            .logRetention(RetentionDays.ONE_WEEK)
-            .memorySize(MEMORY_SIZE)
-            .timeout(Duration.seconds(20))
-            .environment(environmentVariables)
-            .layers(listOf(optimizationLayer))
-            .build()
-        val deleteProductFunction = Function.Builder.create(this, "DeleteProduct")
-            .functionName("DeleteProduct")
-            .runtime(Runtime.JAVA_11)
-            .code(Code.fromAsset(codePath))
-            .handler("com.amazonaws.sample.DeleteProductHandler")
-            .architecture(Architecture.ARM_64)
-            .logRetention(RetentionDays.ONE_WEEK)
-            .memorySize(MEMORY_SIZE)
-            .timeout(Duration.seconds(20))
-            .environment(environmentVariables)
-            .layers(listOf(optimizationLayer))
-            .build()
-        productsTable.grantWriteData(putProductFunction)
-        productsTable.grantWriteData(deleteProductFunction)
+        val getProductFunction = buildLambdaFunction("GetProduct", environmentVariables)
+        val getAllProductsFunction = buildLambdaFunction("GetAllProducts", environmentVariables)
+        val putProductFunction = buildLambdaFunction("PutProduct", environmentVariables)
+        val deleteProductFunction = buildLambdaFunction("DeleteProduct", environmentVariables)
         productsTable.grantReadData(getProductFunction)
         productsTable.grantReadData(getAllProductsFunction)
+        productsTable.grantWriteData(putProductFunction)
+        productsTable.grantWriteData(deleteProductFunction)
+        functions.add(getProductFunction)
+        functions.add(getAllProductsFunction)
+        functions.add(putProductFunction)
+        functions.add(deleteProductFunction)
+
         val httpApi = HttpApi.Builder.create(this, "KotlinProductsApi")
             .apiName("KotlinProductsApi")
             .build()
@@ -166,14 +125,26 @@ class InfrastructureStack constructor(scope: Construct?, id: String?, props: Sta
                 )
                 .build()
         )
-        functions.add(getProductFunction)
-        functions.add(putProductFunction)
-        functions.add(deleteProductFunction)
-        functions.add(getAllProductsFunction)
 
         CfnOutput.Builder.create(this, "KotlinApiUrl")
             .exportName("KotlinApiUrl")
             .value(httpApi.apiEndpoint)
             .build()
     }
+
+    private fun buildLambdaFunction(
+        name: String,
+        environmentVariables: Map<String, String>,
+    ) = Function.Builder.create(this, name)
+        .functionName(name)
+        .handler("com.amazonaws.sample.${name}Handler")
+        .runtime(Runtime.JAVA_11)
+        .code(Code.fromAsset(codePath))
+        .architecture(Architecture.ARM_64)
+        .logRetention(RetentionDays.ONE_WEEK)
+        .memorySize(MEMORY_SIZE)
+        .timeout(Duration.seconds(20))
+        .environment(environmentVariables)
+        .layers(listOf(optimizationLayer))
+        .build()
 }
