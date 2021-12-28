@@ -9,7 +9,8 @@ import software.amazon.awscdk.services.cloudwatch.*
 import software.amazon.awscdk.services.lambda.Function
 import software.constructs.Construct
 
-class DashboardStack(parent: Construct, id: String, props: StackProps, functions: List<Function>) : Stack(parent, id, props) {
+class DashboardStack(parent: Construct, id: String, props: StackProps, functions: List<Function>) :
+    Stack(parent, id, props) {
     init {
         val p50DurationMetrics = functions.map {
             it.metricDuration(

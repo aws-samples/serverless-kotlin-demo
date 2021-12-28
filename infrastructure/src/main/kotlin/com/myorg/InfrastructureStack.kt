@@ -2,32 +2,30 @@
 // SPDX-License-Identifier: MIT-0
 package com.myorg
 
-import software.constructs.Construct
-import software.amazon.awscdk.StackProps
-import software.amazon.awscdk.services.dynamodb.AttributeType
-import software.amazon.awscdk.services.lambda.LayerVersion
-import software.amazon.awscdk.services.logs.RetentionDays
-import software.amazon.awscdk.services.apigatewayv2.alpha.HttpApi
-import software.amazon.awscdk.services.apigatewayv2.alpha.AddRoutesOptions
-import software.amazon.awscdk.services.apigatewayv2.integrations.alpha.LambdaProxyIntegration
-import software.amazon.awscdk.services.apigatewayv2.integrations.alpha.LambdaProxyIntegrationProps
-import software.amazon.awscdk.services.apigatewayv2.alpha.PayloadFormatVersion
 import software.amazon.awscdk.CfnOutput
 import software.amazon.awscdk.Duration
 import software.amazon.awscdk.Stack
+import software.amazon.awscdk.StackProps
+import software.amazon.awscdk.services.apigatewayv2.alpha.AddRoutesOptions
+import software.amazon.awscdk.services.apigatewayv2.alpha.HttpApi
 import software.amazon.awscdk.services.apigatewayv2.alpha.HttpMethod
+import software.amazon.awscdk.services.apigatewayv2.alpha.PayloadFormatVersion
+import software.amazon.awscdk.services.apigatewayv2.integrations.alpha.LambdaProxyIntegration
+import software.amazon.awscdk.services.apigatewayv2.integrations.alpha.LambdaProxyIntegrationProps
 import software.amazon.awscdk.services.dynamodb.Attribute
+import software.amazon.awscdk.services.dynamodb.AttributeType
 import software.amazon.awscdk.services.dynamodb.BillingMode
 import software.amazon.awscdk.services.dynamodb.Table
-import software.amazon.awscdk.services.lambda.Architecture
-import software.amazon.awscdk.services.lambda.Code
+import software.amazon.awscdk.services.lambda.*
 import software.amazon.awscdk.services.lambda.Function
-import software.amazon.awscdk.services.lambda.Runtime
+import software.amazon.awscdk.services.logs.RetentionDays
+import software.constructs.Construct
 
 class InfrastructureStack constructor(scope: Construct, id: String, props: StackProps) : Stack(scope, id, props) {
     companion object {
         private const val MEMORY_SIZE = 2048
     }
+
     val functions = mutableListOf<Function>()
     private val codePath = "../software/build/libs/software-1.0-SNAPSHOT-all.jar"
     private val optimizationLayer: LayerVersion = LayerVersion.Builder.create(this, "OptimizationLayer")
@@ -62,9 +60,9 @@ class InfrastructureStack constructor(scope: Construct, id: String, props: Stack
         productsTable.grantWriteData(putProductFunction)
         productsTable.grantWriteData(deleteProductFunction)
         functions.add(getProductFunction)
-        functions.add(getAllProductsFunction)
         functions.add(putProductFunction)
         functions.add(deleteProductFunction)
+        functions.add(getAllProductsFunction)
 
         val httpApi = HttpApi.Builder.create(this, "KotlinProductsApi")
             .apiName("KotlinProductsApi")
