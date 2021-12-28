@@ -51,9 +51,9 @@ class InfrastructureStack constructor(scope: Construct, id: String, props: Stack
             "AWS_LAMBDA_EXEC_WRAPPER" to "/opt/java-exec-wrapper",
         )
 
+        val putProductFunction = buildLambdaFunction("PutProduct", environmentVariables)
         val getProductFunction = buildLambdaFunction("GetProduct", environmentVariables)
         val getAllProductsFunction = buildLambdaFunction("GetAllProducts", environmentVariables)
-        val putProductFunction = buildLambdaFunction("PutProduct", environmentVariables)
         val deleteProductFunction = buildLambdaFunction("DeleteProduct", environmentVariables)
         productsTable.grantReadData(getProductFunction)
         productsTable.grantReadData(getAllProductsFunction)
