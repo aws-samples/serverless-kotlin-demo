@@ -13,6 +13,12 @@ application {
     mainClass.set("com.myorg.InfrastructureAppKt")
 }
 
-tasks.named("run") {               
+task<Exec>("makeOptimizationLayer") {
+    workingDir = File("../software/OptimizationLayer/")
+    commandLine("./build-layer.sh")
+}
+
+tasks.named("run") {
+    dependsOn(":infrastructure:makeOptimizationLayer")
     dependsOn(":software:shadowJar")
 }

@@ -1,0 +1,693 @@
+Resources:
+  OptimizationLayer70D54074:
+    Type: AWS::Lambda::LayerVersion
+    Properties:
+      Content:
+        S3Bucket: cdk-hnb659fds-assets-254688924456-us-east-2
+        S3Key: 278ab8d0945c6660f57d87d9a844f3dd3a5fa6f55f6b5c036b565fc1c18d758a.zip
+      CompatibleRuntimes:
+        - java11
+        - java8.al2
+      Description: Enable tiered compilation
+      LayerName: OptimizationLayer
+    Metadata:
+      aws:cdk:path: ServerlessKotlinDemo/OptimizationLayer/Resource
+      aws:asset:path: asset.278ab8d0945c6660f57d87d9a844f3dd3a5fa6f55f6b5c036b565fc1c18d758a.zip
+      aws:asset:is-bundled: false
+      aws:asset:property: Content
+  ProductsKotlinA1ED382A:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      KeySchema:
+        - AttributeName: PK
+          KeyType: HASH
+      AttributeDefinitions:
+        - AttributeName: PK
+          AttributeType: S
+      BillingMode: PAY_PER_REQUEST
+      TableName: Products-Kotlin
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
+    Metadata:
+      aws:cdk:path: ServerlessKotlinDemo/Products-Kotlin/Resource
+  PutProductServiceRole4C861F11:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: ServerlessKotlinDemo/PutProduct/ServiceRole/Resource
+  PutProductServiceRoleDefaultPolicy74878315:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - dynamodb:BatchWriteItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+              - dynamodb:DeleteItem
+            Effect: Allow
+            Resource:
+              - Fn::GetAtt:
+                  - ProductsKotlinA1ED382A
+                  - Arn
+              - Ref: AWS::NoValue
+        Version: "2012-10-17"
+      PolicyName: PutProductServiceRoleDefaultPolicy74878315
+      Roles:
+        - Ref: PutProductServiceRole4C861F11
+    Metadata:
+      aws:cdk:path: ServerlessKotlinDemo/PutProduct/ServiceRole/DefaultPolicy/Resource
+  PutProductACF69823:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: cdk-hnb659fds-assets-254688924456-us-east-2
+        S3Key: 50504ffd4b9f99c31de45a9d1efb430ef2f9f9a8d6e4b1f5f95967a2f8373224.jar
+      Role:
+        Fn::GetAtt:
+          - PutProductServiceRole4C861F11
+          - Arn
+      Architectures:
+        - arm64
+      Environment:
+        Variables:
+          PRODUCT_TABLE:
+            Ref: ProductsKotlinA1ED382A
+          AWS_LAMBDA_EXEC_WRAPPER: /opt/java-exec-wrapper
+      FunctionName: PutProduct
+      Handler: com.amazonaws.sample.PutProductHandler
+      Layers:
+        - Ref: OptimizationLayer70D54074
+      MemorySize: 2048
+      Runtime: java11
+      Timeout: 20
+    DependsOn:
+      - PutProductServiceRoleDefaultPolicy74878315
+      - PutProductServiceRole4C861F11
+    Metadata:
+      aws:cdk:path: ServerlessKotlinDemo/PutProduct/Resource
+      aws:asset:path: asset.50504ffd4b9f99c31de45a9d1efb430ef2f9f9a8d6e4b1f5f95967a2f8373224.jar
+      aws:asset:is-bundled: false
+      aws:asset:property: Code
+  PutProductLogRetentionDA7706AA:
+    Type: Custom::LogRetention
+    Properties:
+      ServiceToken:
+        Fn::GetAtt:
+          - LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A
+          - Arn
+      LogGroupName:
+        Fn::Join:
+          - ""
+          - - /aws/lambda/
+            - Ref: PutProductACF69823
+      RetentionInDays: 7
+    Metadata:
+      aws:cdk:path: ServerlessKotlinDemo/PutProduct/LogRetention/Resource
+  LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: ServerlessKotlinDemo/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/Resource
+  LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRoleDefaultPolicyADDA7DEB:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - logs:PutRetentionPolicy
+              - logs:DeleteRetentionPolicy
+            Effect: Allow
+            Resource: "*"
+        Version: "2012-10-17"
+      PolicyName: LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRoleDefaultPolicyADDA7DEB
+      Roles:
+        - Ref: LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB
+    Metadata:
+      aws:cdk:path: ServerlessKotlinDemo/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/DefaultPolicy/Resource
+  LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A:
+    Type: AWS::Lambda::Function
+    Properties:
+      Handler: index.handler
+      Runtime: nodejs14.x
+      Code:
+        S3Bucket: cdk-hnb659fds-assets-254688924456-us-east-2
+        S3Key: c13434f8f1aa2ea30fa577b2feb208a41368b11787b752e10bfc71fe8eb919d5.zip
+      Role:
+        Fn::GetAtt:
+          - LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB
+          - Arn
+    DependsOn:
+      - LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRoleDefaultPolicyADDA7DEB
+      - LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aServiceRole9741ECFB
+    Metadata:
+      aws:cdk:path: ServerlessKotlinDemo/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/Resource
+      aws:asset:path: asset.c13434f8f1aa2ea30fa577b2feb208a41368b11787b752e10bfc71fe8eb919d5
+      aws:asset:is-bundled: false
+      aws:asset:property: Code
+  GetProductServiceRole1936696A:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: ServerlessKotlinDemo/GetProduct/ServiceRole/Resource
+  GetProductServiceRoleDefaultPolicy5CA15324:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - dynamodb:BatchGetItem
+              - dynamodb:GetRecords
+              - dynamodb:GetShardIterator
+              - dynamodb:Query
+              - dynamodb:GetItem
+              - dynamodb:Scan
+              - dynamodb:ConditionCheckItem
+            Effect: Allow
+            Resource:
+              - Fn::GetAtt:
+                  - ProductsKotlinA1ED382A
+                  - Arn
+              - Ref: AWS::NoValue
+        Version: "2012-10-17"
+      PolicyName: GetProductServiceRoleDefaultPolicy5CA15324
+      Roles:
+        - Ref: GetProductServiceRole1936696A
+    Metadata:
+      aws:cdk:path: ServerlessKotlinDemo/GetProduct/ServiceRole/DefaultPolicy/Resource
+  GetProductB1843B98:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: cdk-hnb659fds-assets-254688924456-us-east-2
+        S3Key: 50504ffd4b9f99c31de45a9d1efb430ef2f9f9a8d6e4b1f5f95967a2f8373224.jar
+      Role:
+        Fn::GetAtt:
+          - GetProductServiceRole1936696A
+          - Arn
+      Architectures:
+        - arm64
+      Environment:
+        Variables:
+          PRODUCT_TABLE:
+            Ref: ProductsKotlinA1ED382A
+          AWS_LAMBDA_EXEC_WRAPPER: /opt/java-exec-wrapper
+      FunctionName: GetProduct
+      Handler: com.amazonaws.sample.GetProductHandler
+      Layers:
+        - Ref: OptimizationLayer70D54074
+      MemorySize: 2048
+      Runtime: java11
+      Timeout: 20
+    DependsOn:
+      - GetProductServiceRoleDefaultPolicy5CA15324
+      - GetProductServiceRole1936696A
+    Metadata:
+      aws:cdk:path: ServerlessKotlinDemo/GetProduct/Resource
+      aws:asset:path: asset.50504ffd4b9f99c31de45a9d1efb430ef2f9f9a8d6e4b1f5f95967a2f8373224.jar
+      aws:asset:is-bundled: false
+      aws:asset:property: Code
+  GetProductLogRetentionA4E5215A:
+    Type: Custom::LogRetention
+    Properties:
+      ServiceToken:
+        Fn::GetAtt:
+          - LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A
+          - Arn
+      LogGroupName:
+        Fn::Join:
+          - ""
+          - - /aws/lambda/
+            - Ref: GetProductB1843B98
+      RetentionInDays: 7
+    Metadata:
+      aws:cdk:path: ServerlessKotlinDemo/GetProduct/LogRetention/Resource
+  GetAllProductsServiceRole1FD49630:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: ServerlessKotlinDemo/GetAllProducts/ServiceRole/Resource
+  GetAllProductsServiceRoleDefaultPolicy1F6262CB:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - dynamodb:BatchGetItem
+              - dynamodb:GetRecords
+              - dynamodb:GetShardIterator
+              - dynamodb:Query
+              - dynamodb:GetItem
+              - dynamodb:Scan
+              - dynamodb:ConditionCheckItem
+            Effect: Allow
+            Resource:
+              - Fn::GetAtt:
+                  - ProductsKotlinA1ED382A
+                  - Arn
+              - Ref: AWS::NoValue
+        Version: "2012-10-17"
+      PolicyName: GetAllProductsServiceRoleDefaultPolicy1F6262CB
+      Roles:
+        - Ref: GetAllProductsServiceRole1FD49630
+    Metadata:
+      aws:cdk:path: ServerlessKotlinDemo/GetAllProducts/ServiceRole/DefaultPolicy/Resource
+  GetAllProductsADFB8793:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: cdk-hnb659fds-assets-254688924456-us-east-2
+        S3Key: 50504ffd4b9f99c31de45a9d1efb430ef2f9f9a8d6e4b1f5f95967a2f8373224.jar
+      Role:
+        Fn::GetAtt:
+          - GetAllProductsServiceRole1FD49630
+          - Arn
+      Architectures:
+        - arm64
+      Environment:
+        Variables:
+          PRODUCT_TABLE:
+            Ref: ProductsKotlinA1ED382A
+          AWS_LAMBDA_EXEC_WRAPPER: /opt/java-exec-wrapper
+      FunctionName: GetAllProducts
+      Handler: com.amazonaws.sample.GetAllProductsHandler
+      Layers:
+        - Ref: OptimizationLayer70D54074
+      MemorySize: 2048
+      Runtime: java11
+      Timeout: 20
+    DependsOn:
+      - GetAllProductsServiceRoleDefaultPolicy1F6262CB
+      - GetAllProductsServiceRole1FD49630
+    Metadata:
+      aws:cdk:path: ServerlessKotlinDemo/GetAllProducts/Resource
+      aws:asset:path: asset.50504ffd4b9f99c31de45a9d1efb430ef2f9f9a8d6e4b1f5f95967a2f8373224.jar
+      aws:asset:is-bundled: false
+      aws:asset:property: Code
+  GetAllProductsLogRetention6AE64411:
+    Type: Custom::LogRetention
+    Properties:
+      ServiceToken:
+        Fn::GetAtt:
+          - LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A
+          - Arn
+      LogGroupName:
+        Fn::Join:
+          - ""
+          - - /aws/lambda/
+            - Ref: GetAllProductsADFB8793
+      RetentionInDays: 7
+    Metadata:
+      aws:cdk:path: ServerlessKotlinDemo/GetAllProducts/LogRetention/Resource
+  DeleteProductServiceRole32C6C7CB:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+        Version: "2012-10-17"
+      ManagedPolicyArns:
+        - Fn::Join:
+            - ""
+            - - "arn:"
+              - Ref: AWS::Partition
+              - :iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+    Metadata:
+      aws:cdk:path: ServerlessKotlinDemo/DeleteProduct/ServiceRole/Resource
+  DeleteProductServiceRoleDefaultPolicy2067631B:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyDocument:
+        Statement:
+          - Action:
+              - dynamodb:BatchWriteItem
+              - dynamodb:PutItem
+              - dynamodb:UpdateItem
+              - dynamodb:DeleteItem
+            Effect: Allow
+            Resource:
+              - Fn::GetAtt:
+                  - ProductsKotlinA1ED382A
+                  - Arn
+              - Ref: AWS::NoValue
+        Version: "2012-10-17"
+      PolicyName: DeleteProductServiceRoleDefaultPolicy2067631B
+      Roles:
+        - Ref: DeleteProductServiceRole32C6C7CB
+    Metadata:
+      aws:cdk:path: ServerlessKotlinDemo/DeleteProduct/ServiceRole/DefaultPolicy/Resource
+  DeleteProductA4E222DB:
+    Type: AWS::Lambda::Function
+    Properties:
+      Code:
+        S3Bucket: cdk-hnb659fds-assets-254688924456-us-east-2
+        S3Key: 50504ffd4b9f99c31de45a9d1efb430ef2f9f9a8d6e4b1f5f95967a2f8373224.jar
+      Role:
+        Fn::GetAtt:
+          - DeleteProductServiceRole32C6C7CB
+          - Arn
+      Architectures:
+        - arm64
+      Environment:
+        Variables:
+          PRODUCT_TABLE:
+            Ref: ProductsKotlinA1ED382A
+          AWS_LAMBDA_EXEC_WRAPPER: /opt/java-exec-wrapper
+      FunctionName: DeleteProduct
+      Handler: com.amazonaws.sample.DeleteProductHandler
+      Layers:
+        - Ref: OptimizationLayer70D54074
+      MemorySize: 2048
+      Runtime: java11
+      Timeout: 20
+    DependsOn:
+      - DeleteProductServiceRoleDefaultPolicy2067631B
+      - DeleteProductServiceRole32C6C7CB
+    Metadata:
+      aws:cdk:path: ServerlessKotlinDemo/DeleteProduct/Resource
+      aws:asset:path: asset.50504ffd4b9f99c31de45a9d1efb430ef2f9f9a8d6e4b1f5f95967a2f8373224.jar
+      aws:asset:is-bundled: false
+      aws:asset:property: Code
+  DeleteProductLogRetention471B171F:
+    Type: Custom::LogRetention
+    Properties:
+      ServiceToken:
+        Fn::GetAtt:
+          - LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8aFD4BFC8A
+          - Arn
+      LogGroupName:
+        Fn::Join:
+          - ""
+          - - /aws/lambda/
+            - Ref: DeleteProductA4E222DB
+      RetentionInDays: 7
+    Metadata:
+      aws:cdk:path: ServerlessKotlinDemo/DeleteProduct/LogRetention/Resource
+  KotlinProductsApi14890FA1:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      Name: KotlinProductsApi
+      ProtocolType: HTTP
+    Metadata:
+      aws:cdk:path: ServerlessKotlinDemo/KotlinProductsApi/Resource
+  KotlinProductsApiDefaultStageB6CD0969:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      ApiId:
+        Ref: KotlinProductsApi14890FA1
+      StageName: $default
+      AutoDeploy: true
+    Metadata:
+      aws:cdk:path: ServerlessKotlinDemo/KotlinProductsApi/DefaultStage/Resource
+  KotlinProductsApiPUTidServerlessKotlinDemoKotlinProductsApiPUTid9CF96836PermissionC6EFAD39:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - PutProductACF69823
+          - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+          - ""
+          - - "arn:"
+            - Ref: AWS::Partition
+            - ":execute-api:us-east-2:254688924456:"
+            - Ref: KotlinProductsApi14890FA1
+            - /*/*/{id}
+    Metadata:
+      aws:cdk:path: ServerlessKotlinDemo/KotlinProductsApi/PUT--{id}/ServerlessKotlinDemoKotlinProductsApiPUTid9CF96836-Permission
+  KotlinProductsApiPUTidHttpIntegrationdf0ec7c675aacf42b1e1066d6cbf4e79B72101E9:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId:
+        Ref: KotlinProductsApi14890FA1
+      IntegrationType: AWS_PROXY
+      IntegrationUri:
+        Fn::GetAtt:
+          - PutProductACF69823
+          - Arn
+      PayloadFormatVersion: "2.0"
+    Metadata:
+      aws:cdk:path: ServerlessKotlinDemo/KotlinProductsApi/PUT--{id}/HttpIntegration-df0ec7c675aacf42b1e1066d6cbf4e79/Resource
+  KotlinProductsApiPUTidE9D9AB46:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId:
+        Ref: KotlinProductsApi14890FA1
+      RouteKey: PUT /{id}
+      AuthorizationType: NONE
+      Target:
+        Fn::Join:
+          - ""
+          - - integrations/
+            - Ref: KotlinProductsApiPUTidHttpIntegrationdf0ec7c675aacf42b1e1066d6cbf4e79B72101E9
+    Metadata:
+      aws:cdk:path: ServerlessKotlinDemo/KotlinProductsApi/PUT--{id}/Resource
+  KotlinProductsApiGETidServerlessKotlinDemoKotlinProductsApiGETid69D3F547PermissionA78C2CB9:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - GetProductB1843B98
+          - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+          - ""
+          - - "arn:"
+            - Ref: AWS::Partition
+            - ":execute-api:us-east-2:254688924456:"
+            - Ref: KotlinProductsApi14890FA1
+            - /*/*/{id}
+    Metadata:
+      aws:cdk:path: ServerlessKotlinDemo/KotlinProductsApi/GET--{id}/ServerlessKotlinDemoKotlinProductsApiGETid69D3F547-Permission
+  KotlinProductsApiGETidHttpIntegration81f3cd146785f9c17581035a75f92d5e4822CCAD:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId:
+        Ref: KotlinProductsApi14890FA1
+      IntegrationType: AWS_PROXY
+      IntegrationUri:
+        Fn::GetAtt:
+          - GetProductB1843B98
+          - Arn
+      PayloadFormatVersion: "2.0"
+    Metadata:
+      aws:cdk:path: ServerlessKotlinDemo/KotlinProductsApi/GET--{id}/HttpIntegration-81f3cd146785f9c17581035a75f92d5e/Resource
+  KotlinProductsApiGETid276715FB:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId:
+        Ref: KotlinProductsApi14890FA1
+      RouteKey: GET /{id}
+      AuthorizationType: NONE
+      Target:
+        Fn::Join:
+          - ""
+          - - integrations/
+            - Ref: KotlinProductsApiGETidHttpIntegration81f3cd146785f9c17581035a75f92d5e4822CCAD
+    Metadata:
+      aws:cdk:path: ServerlessKotlinDemo/KotlinProductsApi/GET--{id}/Resource
+  KotlinProductsApiGETServerlessKotlinDemoKotlinProductsApiGET1658DC11Permission439C4338:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - GetAllProductsADFB8793
+          - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+          - ""
+          - - "arn:"
+            - Ref: AWS::Partition
+            - ":execute-api:us-east-2:254688924456:"
+            - Ref: KotlinProductsApi14890FA1
+            - /*/*/
+    Metadata:
+      aws:cdk:path: ServerlessKotlinDemo/KotlinProductsApi/GET--/ServerlessKotlinDemoKotlinProductsApiGET1658DC11-Permission
+  KotlinProductsApiGETHttpIntegratione8e4873dc9012b00bfb032755a2ad2c16A3932FB:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId:
+        Ref: KotlinProductsApi14890FA1
+      IntegrationType: AWS_PROXY
+      IntegrationUri:
+        Fn::GetAtt:
+          - GetAllProductsADFB8793
+          - Arn
+      PayloadFormatVersion: "2.0"
+    Metadata:
+      aws:cdk:path: ServerlessKotlinDemo/KotlinProductsApi/GET--/HttpIntegration-e8e4873dc9012b00bfb032755a2ad2c1/Resource
+  KotlinProductsApiGETF73F8660:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId:
+        Ref: KotlinProductsApi14890FA1
+      RouteKey: GET /
+      AuthorizationType: NONE
+      Target:
+        Fn::Join:
+          - ""
+          - - integrations/
+            - Ref: KotlinProductsApiGETHttpIntegratione8e4873dc9012b00bfb032755a2ad2c16A3932FB
+    Metadata:
+      aws:cdk:path: ServerlessKotlinDemo/KotlinProductsApi/GET--/Resource
+  KotlinProductsApiDELETEidServerlessKotlinDemoKotlinProductsApiDELETEid4F9AF954Permission62A77750:
+    Type: AWS::Lambda::Permission
+    Properties:
+      Action: lambda:InvokeFunction
+      FunctionName:
+        Fn::GetAtt:
+          - DeleteProductA4E222DB
+          - Arn
+      Principal: apigateway.amazonaws.com
+      SourceArn:
+        Fn::Join:
+          - ""
+          - - "arn:"
+            - Ref: AWS::Partition
+            - ":execute-api:us-east-2:254688924456:"
+            - Ref: KotlinProductsApi14890FA1
+            - /*/*/{id}
+    Metadata:
+      aws:cdk:path: ServerlessKotlinDemo/KotlinProductsApi/DELETE--{id}/ServerlessKotlinDemoKotlinProductsApiDELETEid4F9AF954-Permission
+  KotlinProductsApiDELETEidHttpIntegration06d3eea9dfea536840cbc1d195d4baee4A21F85B:
+    Type: AWS::ApiGatewayV2::Integration
+    Properties:
+      ApiId:
+        Ref: KotlinProductsApi14890FA1
+      IntegrationType: AWS_PROXY
+      IntegrationUri:
+        Fn::GetAtt:
+          - DeleteProductA4E222DB
+          - Arn
+      PayloadFormatVersion: "2.0"
+    Metadata:
+      aws:cdk:path: ServerlessKotlinDemo/KotlinProductsApi/DELETE--{id}/HttpIntegration-06d3eea9dfea536840cbc1d195d4baee/Resource
+  KotlinProductsApiDELETEid55FD0A5A:
+    Type: AWS::ApiGatewayV2::Route
+    Properties:
+      ApiId:
+        Ref: KotlinProductsApi14890FA1
+      RouteKey: DELETE /{id}
+      AuthorizationType: NONE
+      Target:
+        Fn::Join:
+          - ""
+          - - integrations/
+            - Ref: KotlinProductsApiDELETEidHttpIntegration06d3eea9dfea536840cbc1d195d4baee4A21F85B
+    Metadata:
+      aws:cdk:path: ServerlessKotlinDemo/KotlinProductsApi/DELETE--{id}/Resource
+  CDKMetadata:
+    Type: AWS::CDK::Metadata
+    Properties:
+      Analytics: v2:deflate64:H4sIAAAAAAAA/1VQy07DMBD8ltydbRqQuNIiIUCVqALiWm2crTFJ7MiPVlGUf8d2ihROM/uc2S1hKqHI8Gpz3rR5J2uYPhzyloXUaeqwrxuE6YAjmS8yVmrFns7qX/zsFXe3wpofyfTSxpaZ2bsTWkvOwi5CiGHveUtuj5ZYMyrsdRO0P7HuKA4nMjOJPUyVXnIJj7qTfEz7E5tZp4WFgxYVOVJJHAcp0NEVx0sJU2jdDTJOhMtE2vSqHAmDf04r7R3NM0veYpNUglVktTd8UV7xd+8G72ZWQJEbDuV99nh73ybiWjvHbvgO73txbogWIi4eIkuqia3sBBdveMHN9gEK2GY/Vsrc+HBWT1At+As0NYWhtAEAAA==
+    Metadata:
+      aws:cdk:path: ServerlessKotlinDemo/CDKMetadata/Default
+Outputs:
+  KotlinApiUrl:
+    Value:
+      Fn::GetAtt:
+        - KotlinProductsApi14890FA1
+        - ApiEndpoint
+    Export:
+      Name: KotlinApiUrl
+  ExportsOutputRefGetProductB1843B98FB5D22B1:
+    Value:
+      Ref: GetProductB1843B98
+    Export:
+      Name: ServerlessKotlinDemo:ExportsOutputRefGetProductB1843B98FB5D22B1
+  ExportsOutputRefPutProductACF6982330101BA0:
+    Value:
+      Ref: PutProductACF69823
+    Export:
+      Name: ServerlessKotlinDemo:ExportsOutputRefPutProductACF6982330101BA0
+  ExportsOutputRefDeleteProductA4E222DBBA431471:
+    Value:
+      Ref: DeleteProductA4E222DB
+    Export:
+      Name: ServerlessKotlinDemo:ExportsOutputRefDeleteProductA4E222DBBA431471
+  ExportsOutputRefGetAllProductsADFB8793D3359158:
+    Value:
+      Ref: GetAllProductsADFB8793
+    Export:
+      Name: ServerlessKotlinDemo:ExportsOutputRefGetAllProductsADFB8793D3359158
+Parameters:
+  BootstrapVersion:
+    Type: AWS::SSM::Parameter::Value<String>
+    Default: /cdk-bootstrap/hnb659fds/version
+    Description: Version of the CDK Bootstrap resources in this environment, automatically retrieved from SSM Parameter Store. [cdk:skip]
+Rules:
+  CheckBootstrapVersion:
+    Assertions:
+      - Assert:
+          Fn::Not:
+            - Fn::Contains:
+                - - "1"
+                  - "2"
+                  - "3"
+                  - "4"
+                  - "5"
+                - Ref: BootstrapVersion
+        AssertDescription: CDK bootstrap stack version 6 required. Please run 'cdk bootstrap' with a recent version of the CDK CLI.
+
