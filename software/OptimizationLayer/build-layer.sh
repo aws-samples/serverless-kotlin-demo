@@ -1,1 +1,1 @@
-chmod 755 java-exec-wrapper && zip layer.zip java-exec-wrapper
+chmod 755 java-exec-wrapper && zip -qq layer.zip java-exec-wrapper
